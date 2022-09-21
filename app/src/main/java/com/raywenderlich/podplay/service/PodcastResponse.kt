@@ -1,5 +1,6 @@
 package com.raywenderlich.podplay.service
 
+//define data classes
 data class PodcastResponse(
     val resultCount: Int,
     val results: List<ItunesPodcast>) {
