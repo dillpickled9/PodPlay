@@ -16,9 +16,7 @@ class PodcastListAdapter(
     private val parentActivity: Activity
 ) : RecyclerView.Adapter<PodcastListAdapter.ViewHolder>() {
     interface PodcastListAdapterListener {
-        fun onShowDetails(podcastSummaryViewData:
-                          SearchViewModel.PodcastSummaryViewData
-        )
+        fun onShowDetails(podcastSummaryViewData: SearchViewModel.PodcastSummaryViewData)
     }
     inner class ViewHolder(
         databinding: SearchItemBinding,
