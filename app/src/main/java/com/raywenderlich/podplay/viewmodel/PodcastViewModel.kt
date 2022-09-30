@@ -1,13 +1,13 @@
 package com.raywenderlich.podplay.viewmodel
 
+import PodcastDao
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
+import com.raywenderlich.podplay.db.PodPlayDatabase
 import com.raywenderlich.podplay.model.Episode
 import com.raywenderlich.podplay.model.Podcast
 import com.raywenderlich.podplay.repository.PodcastRepo
+import com.raywenderlich.podplay.util.DateUtils
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -19,6 +19,13 @@ class PodcastViewModel(application: Application) :
             >()
     val podcastLiveData: LiveData<PodcastViewData?> =
         _podcastLiveData
+    val podcastDao : PodcastDao = PodPlayDatabase
+        .getInstance(application, viewModelScope)
+        .podcastDao()
+    private var activePodcast: Podcast? = null
+    var livePodcastSummaryData:
+            LiveData<List<SearchViewModel.PodcastSummaryViewData>>? = null
+
 
 
     data class PodcastViewData(
@@ -72,6 +79,7 @@ class PodcastViewModel(application: Application) :
                     it.feedTitle = podcastSummaryViewData.name ?: ""
                     it.imageUrl = podcastSummaryViewData.imageUrl ?: ""
                     _podcastLiveData.value = podcastToPodcastView(it)
+                    activePodcast = it
                 } ?: run {
                     _podcastLiveData.value = null
                 }
@@ -79,5 +87,37 @@ class PodcastViewModel(application: Application) :
         } ?: run {
             _podcastLiveData.value = null
         }
+    }
+
+    fun saveActivePodcast() {
+        val repo = podcastRepo ?: return
+        activePodcast?.let {
+            repo.save(it)
+        }
+    }
+
+    private fun podcastToSummaryView(podcast: Podcast):
+            SearchViewModel.PodcastSummaryViewData {
+        return SearchViewModel.PodcastSummaryViewData(
+            podcast.feedTitle,
+            DateUtils.dateToShortDate(podcast.lastUpdated),
+            podcast.imageUrl,
+            podcast.feedUrl)
+    }
+
+    fun getPodcasts(): LiveData<List<SearchViewModel.PodcastSummaryViewData>>? {
+        val repo = podcastRepo ?: return null
+        if (livePodcastSummaryData == null) {
+
+            val liveData = repo.getAll()
+            livePodcastSummaryData = Transformations.map(liveData)
+            { podcastList ->
+                podcastList.map { podcast ->
+                    podcastToSummaryView(podcast)
+                }
+            }
+        }
+
+        return livePodcastSummaryData
     }
 }

@@ -49,7 +49,10 @@ import javax.xml.transform.TransformerFactory.newInstance
 import javax.xml.validation.SchemaFactory.newInstance
 import javax.xml.xpath.XPathFactory.newInstance
 
-class PodcastActivity : AppCompatActivity(), PodcastListAdapter.PodcastListAdapterListener {
+
+class PodcastActivity : AppCompatActivity(),
+    PodcastListAdapter.PodcastListAdapterListener,
+    PodcastDetailsFragment.OnPodcastDetailsListener {
 
     private val podcastViewModel by viewModels<PodcastViewModel>()
     private lateinit var searchMenuItem: MenuItem
@@ -68,6 +71,7 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapter.PodcastListAdapt
         setupToolbar()
         setupViewModels()
         updateControls()
+        setupPodcastListView()
         createSubscription()
         handleIntent(intent)
         addBackStackListener()
@@ -130,7 +134,8 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapter.PodcastListAdapt
     private fun setupViewModels() {
         val service = ItunesService.instance
         searchViewModel.iTunesRepo = ItunesRepo(service)
-        podcastViewModel.podcastRepo = PodcastRepo(RssFeedService.instance)
+        val rssService = RssFeedService.instance
+        podcastViewModel.podcastRepo = PodcastRepo(rssService, podcastViewModel.podcastDao)
     }
 
     private fun updateControls() {
@@ -223,4 +228,26 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapter.PodcastListAdapt
         })
     }
 
+    override fun onSubscribe() {
+        podcastViewModel.saveActivePodcast()
+        supportFragmentManager.popBackStack()
+    }
+
+    private fun showSubscribedPodcasts() {
+        // 1
+        val podcasts = podcastViewModel.getPodcasts()?.value
+        if (podcasts != null) {
+            databinding.toolbar.title = getString(R.string.subscribed_podcasts)
+            podcastListAdapter.setSearchData(podcasts)
+        }
+    }
+
+
+private fun setupPodcastListView() {
+    podcastViewModel.getPodcasts()?.observe(this, {
+        if (it != null) {
+            showSubscribedPodcasts()
+        }
+    })
+}
 }
