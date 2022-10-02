@@ -21,15 +21,23 @@ class PodcastDetailsFragment : Fragment() {
     private lateinit var episodeListAdapter: EpisodeListAdapter
     private var listener: OnPodcastDetailsListener? = null
 
+    companion object {
+        fun newInstance(): PodcastDetailsFragment {
+            return PodcastDetailsFragment()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
     }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
         databinding = FragmentPodcastDetailsBinding.inflate(inflater, container, false)
         return databinding.root
     }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -44,21 +52,23 @@ class PodcastDetailsFragment : Fragment() {
                     databinding.feedDescTextView.movementMethod = ScrollingMovementMethod()
 
                     databinding.episodeRecyclerView.setHasFixedSize(true)
+
                     val layoutManager = LinearLayoutManager(activity)
                     databinding.episodeRecyclerView.layoutManager = layoutManager
-                    val dividerItemDecoration = DividerItemDecoration(databinding.episodeRecyclerView.context, layoutManager.orientation)
 
+                    val dividerItemDecoration = DividerItemDecoration(
+                        databinding.episodeRecyclerView.context, layoutManager.orientation)
                     databinding.episodeRecyclerView.addItemDecoration(dividerItemDecoration)
 
                     episodeListAdapter = EpisodeListAdapter(viewData.episodes)
                     databinding.episodeRecyclerView.adapter = episodeListAdapter
+
+                    activity?.invalidateOptionsMenu()
                 }
             })
     }
-    // 2
-    override fun onCreateOptionsMenu(menu: Menu, inflater:
-    MenuInflater
-    ) {
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_details, menu)
     }
@@ -73,14 +83,11 @@ class PodcastDetailsFragment : Fragment() {
             Glide.with(activity).load(viewData.imageUrl).into(databinding.feedImageView)
         }
     }
-    companion object {
-        fun newInstance(): PodcastDetailsFragment {
-            return PodcastDetailsFragment()
-        }
-    }
+
 
     interface OnPodcastDetailsListener {
         fun onSubscribe()
+        fun onUnsubscribe()
     }
 
     override fun onAttach(context: Context) {
@@ -96,7 +103,9 @@ class PodcastDetailsFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_feed_action -> {
-                podcastViewModel.podcastLiveData.value?.feedUrl?.let {
+                if (item.title == getString(R.string.unsubscribe)) {
+                    listener?.onUnsubscribe()
+                } else {
                     listener?.onSubscribe()
                 }
                 true
@@ -104,6 +113,16 @@ class PodcastDetailsFragment : Fragment() {
             else ->
                 super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        podcastViewModel.podcastLiveData.observe(viewLifecycleOwner, { podcast ->
+            if (podcast != null) {
+                menu.findItem(R.id.menu_feed_action).title = if (podcast.subscribed)
+                    getString(R.string.unsubscribe) else getString(R.string.subscribe)
+            }
+        })
+        super.onPrepareOptionsMenu(menu)
     }
 
 }

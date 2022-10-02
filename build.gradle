@@ -12,7 +12,7 @@ buildscript{
     }
     ext{
         lifecycle_version = '2.3.0'
-        room_version = '2.2.6'
+        room_version = ''
     }
 }
 

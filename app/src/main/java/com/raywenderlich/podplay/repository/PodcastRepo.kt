@@ -1,8 +1,7 @@
 package com.raywenderlich.podplay.repository
 
-
-import PodcastDao
 import androidx.lifecycle.LiveData
+import com.raywenderlich.podplay.db.PodcastDao
 import com.raywenderlich.podplay.model.Episode
 import com.raywenderlich.podplay.model.Podcast
 import com.raywenderlich.podplay.service.FeedService
@@ -16,6 +15,13 @@ class PodcastRepo(private var feedService: RssFeedService,
                 private var podcastDao: PodcastDao) {
 
     suspend fun getPodcast(feedUrl: String): Podcast? {
+        val podcastLocal = podcastDao.loadPodcast(feedUrl)
+        if (podcastLocal != null) {
+            podcastLocal.id?.let {
+                podcastLocal.episodes = podcastDao.loadEpisodes(it)
+                return podcastLocal
+            }
+        }
         var podcast: Podcast? = null
         val feedResponse = feedService.getFeed(feedUrl)
         if (feedResponse != null) {
@@ -58,11 +64,11 @@ class PodcastRepo(private var feedService: RssFeedService,
 
     fun save(podcast: Podcast) {
         GlobalScope.launch {
-            // 1
+
             val podcastId = podcastDao.insertPodcast(podcast)
-            // 2
+
             for (episode in podcast.episodes) {
-                // 3
+
                 episode.podcastId = podcastId
                 podcastDao.insertEpisode(episode)
             }
@@ -71,6 +77,12 @@ class PodcastRepo(private var feedService: RssFeedService,
 
     fun getAll(): LiveData<List<Podcast>> {
         return podcastDao.loadPodcasts()
+    }
+
+    fun delete(podcast: Podcast) {
+        GlobalScope.launch {
+            podcastDao.deletePodcast(podcast)
+        }
     }
 
 }
