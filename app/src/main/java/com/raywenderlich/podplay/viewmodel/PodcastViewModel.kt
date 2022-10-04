@@ -72,9 +72,9 @@ class PodcastViewModel(application: Application) :
         )
     }
 
-    fun getPodcast(podcastSummaryViewData: SearchViewModel.PodcastSummaryViewData) {
+    suspend fun getPodcast(podcastSummaryViewData: SearchViewModel.PodcastSummaryViewData) {
         podcastSummaryViewData.feedUrl?.let { url ->
-            viewModelScope.launch {
+
                 podcastRepo?.getPodcast(url)?.let {
                     it.feedTitle = podcastSummaryViewData.name ?: ""
                     it.imageUrl = podcastSummaryViewData.imageUrl ?: ""
@@ -83,8 +83,8 @@ class PodcastViewModel(application: Application) :
                 } ?: run {
                     _podcastLiveData.value = null
                 }
-            }
-        } ?: run {
+
+    }?: run {
             _podcastLiveData.value = null
         }
     }

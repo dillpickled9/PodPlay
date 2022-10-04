@@ -7,8 +7,6 @@ import androidx.room.OnConflictStrategy.REPLACE
 import androidx.room.Query
 import com.raywenderlich.podplay.model.Episode
 import com.raywenderlich.podplay.model.Podcast
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 // 1
 @Dao
@@ -18,7 +16,7 @@ interface PodcastDao {
     fun loadPodcasts(): LiveData<List<Podcast>>
 
     @Query("SELECT * FROM Episode WHERE podcastId = :podcastId ORDER BY releaseDate DESC")
-            suspend fun loadEpisodes(podcastId: Long): List<Episode>
+    suspend fun loadEpisodes(podcastId: Long): List<Episode>
 
     @Insert(onConflict = REPLACE)
     suspend fun insertPodcast(podcast: Podcast): Long
@@ -27,8 +25,8 @@ interface PodcastDao {
     suspend fun insertEpisode(episode: Episode): Long
 
     @Query("SELECT * FROM Podcast WHERE feedUrl = :url")
-    fun loadPodcast(url: String): Podcast?
+    suspend fun loadPodcast(url: String): Podcast?
 
     @Delete
-    fun deletePodcast(podcast: Podcast)
+    suspend fun deletePodcast(podcast: Podcast)
 }

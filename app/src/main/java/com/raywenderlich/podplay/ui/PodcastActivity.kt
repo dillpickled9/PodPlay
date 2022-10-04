@@ -73,7 +73,6 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapterListener,
         setupPodcastListView()
         handleIntent(intent)
         addBackStackListener()
-
     }
 
     //inflates options menu and creates search widget
