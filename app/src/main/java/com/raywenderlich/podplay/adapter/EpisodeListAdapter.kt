@@ -10,11 +10,16 @@ import com.raywenderlich.podplay.util.HtmlUtils
 import com.raywenderlich.podplay.viewmodel.PodcastViewModel
 
 class EpisodeListAdapter(
-    private var episodeViewList:
-    List<PodcastViewModel.EpisodeViewData>?
-) : RecyclerView.Adapter<EpisodeListAdapter.ViewHolder>() {
-    inner class ViewHolder(
-        databinding: EpisodeItemBinding
+    private var episodeViewList: List<PodcastViewModel.EpisodeViewData>?,
+    private val episodeListAdapterListener:
+    EpisodeListAdapterListener) : RecyclerView.Adapter<EpisodeListAdapter.ViewHolder>() {
+
+    interface EpisodeListAdapterListener {
+        fun onSelectedEpisode(episodeViewData: PodcastViewModel.EpisodeViewData)
+    }
+
+    inner class ViewHolder(databinding: EpisodeItemBinding,
+        val episodeListAdapterListener: EpisodeListAdapterListener
     ) : RecyclerView.ViewHolder(databinding.root) {
         var episodeViewData: PodcastViewModel.EpisodeViewData? =
             null
@@ -23,9 +28,22 @@ class EpisodeListAdapter(
         val durationTextView: TextView = databinding.durationView
         val releaseDateTextView: TextView =
             databinding.releaseDateView
+
+        init {
+            databinding.root.setOnClickListener {
+                episodeViewData?.let {
+                    episodeListAdapterListener.onSelectedEpisode(it)
+                }
+            }
+        }
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EpisodeListAdapter.ViewHolder {
-        return ViewHolder(EpisodeItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        return ViewHolder(
+
+            EpisodeItemBinding.inflate(LayoutInflater.from(parent.context),
+                parent, false),
+            episodeListAdapterListener)
+
     }
     override fun onBindViewHolder(holder: ViewHolder, position:
     Int) {

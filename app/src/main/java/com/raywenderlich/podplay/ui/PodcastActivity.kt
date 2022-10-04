@@ -23,6 +23,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.work.*
 import com.bumptech.glide.util.pool.StateVerifier.newInstance
 import com.google.android.material.datepicker.MaterialCalendar.newInstance
 import com.raywenderlich.podplay.R
@@ -51,6 +52,8 @@ import javax.xml.validation.SchemaFactory.newInstance
 import javax.xml.xpath.XPathFactory.newInstance
 import com.raywenderlich.podplay.ui.PodcastDetailsFragment.OnPodcastDetailsListener
 import com.raywenderlich.podplay.adapter.PodcastListAdapter.PodcastListAdapterListener
+import com.raywenderlich.podplay.worker.EpisodeUpdateWorker
+import java.util.concurrent.TimeUnit
 
 
 class PodcastActivity : AppCompatActivity(), PodcastListAdapterListener,
@@ -73,6 +76,7 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapterListener,
         setupPodcastListView()
         handleIntent(intent)
         addBackStackListener()
+        scheduleJobs()
     }
 
     //inflates options menu and creates search widget
@@ -124,6 +128,16 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapterListener,
         if (Intent.ACTION_SEARCH == intent.action) {
             val query = intent.getStringExtra(SearchManager.QUERY) ?: return
             performSearch(query)
+        }
+        val podcastFeedUrl =
+            intent.getStringExtra(EpisodeUpdateWorker.EXTRA_FEED_URL)
+        if (podcastFeedUrl != null) {
+            podcastViewModel.viewModelScope.launch {
+                val podcastSummaryViewData =
+                    podcastViewModel.setActivePodcast(podcastFeedUrl)
+                podcastSummaryViewData?.let { podcastSummaryView ->
+                    onShowDetails(podcastSummaryView) }
+            }
         }
     }
     //overrides to receive updated intent with new search
@@ -178,6 +192,7 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapterListener,
 
     companion object {
         private const val TAG_DETAILS_FRAGMENT = "DetailsFragment"
+        private const val TAG_EPISODE_UPDATE_JOB = "com.raywenderlich.podplay.episodes"
     }
 
     private fun createPodcastDetailsFragment(): PodcastDetailsFragment {
@@ -255,5 +270,21 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapterListener,
     override fun onUnsubscribe() {
         podcastViewModel.deleteActivePodcast()
         supportFragmentManager.popBackStack()
+    }
+
+    private fun scheduleJobs() {
+        val constraints: Constraints = Constraints.Builder().apply {
+            setRequiredNetworkType(NetworkType.CONNECTED)
+            setRequiresCharging(true)
+        }.build()
+
+        val request = PeriodicWorkRequestBuilder<EpisodeUpdateWorker>(
+            1, TimeUnit.HOURS)
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            TAG_EPISODE_UPDATE_JOB,
+            ExistingPeriodicWorkPolicy.REPLACE, request)
     }
 }

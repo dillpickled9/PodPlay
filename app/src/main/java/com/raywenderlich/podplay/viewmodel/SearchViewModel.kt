@@ -24,7 +24,7 @@ class SearchViewModel(application: Application) :
             itunesPodcast.collectionCensoredName,
             //itunesPodcast.releaseDate,
             DateUtils.jsonDateToShortDate(itunesPodcast.releaseDate),
-            itunesPodcast.artworkUrl30,
+            itunesPodcast.artworkUrl100,
             itunesPodcast.feedUrl)
     }
 
