@@ -25,6 +25,8 @@ class PodcastViewModel(application: Application) :
         .getInstance(application, viewModelScope)
         .podcastDao()
 
+    var activeEpisodeViewData: EpisodeViewData? = null
+
     private var activePodcast: Podcast? = null
     var livePodcastSummaryData: LiveData<List<PodcastSummaryViewData>>? = null
 
@@ -42,21 +44,17 @@ class PodcastViewModel(application: Application) :
         var description: String? = "",
         var mediaUrl: String? = "",
         var releaseDate: Date? = null,
-        var duration: String? = ""
+        var duration: String? = "",
+        var isVideo: Boolean = false
     )
 
     //converts episodes to objects
     private fun episodesToEpisodesView(episodes: List<Episode>):
             List<EpisodeViewData> {
         return episodes.map {
-            EpisodeViewData(
-                it.guid,
-                it.title,
-                it.description,
-                it.mediaUrl,
-                it.releaseDate,
-                it.duration
-            )
+            val isVideo = it.mimeType.startsWith("video")
+            EpisodeViewData(it.guid, it.title, it.description,
+                it.mediaUrl, it.releaseDate, it.duration, isVideo)
         }
     }
 
