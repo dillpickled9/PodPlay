@@ -85,7 +85,7 @@ class PodcastDetailsFragment : Fragment(),
         inflater.inflate(R.menu.menu_details, menu)
     }
 
-    private fun updateControls() {
+    /*private fun updateControls() {
         val viewData = podcastViewModel.activePodcastViewData ?:
         return
         databinding.feedTitleTextView.text = viewData.feedTitle
@@ -94,7 +94,7 @@ class PodcastDetailsFragment : Fragment(),
 
             Glide.with(activity).load(viewData.imageUrl).into(databinding.feedImageView)
         }
-    }
+    }*/
 
 
     interface OnPodcastDetailsListener {

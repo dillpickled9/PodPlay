@@ -85,7 +85,7 @@ class PodplayMediaService : MediaBrowserServiceCompat(), PodplayMediaCallback.Po
         openActivityIntent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         return PendingIntent.getActivity(
             this@PodplayMediaService, 0, openActivityIntent,
-            PendingIntent.FLAG_CANCEL_CURRENT)
+            PendingIntent.FLAG_MUTABLE)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

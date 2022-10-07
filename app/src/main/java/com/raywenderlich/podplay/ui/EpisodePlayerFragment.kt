@@ -149,14 +149,14 @@ class EpisodePlayerFragment : Fragment() {
         val fragmentActivity = activity as FragmentActivity
         val controller =
             MediaControllerCompat.getMediaController(fragmentActivity)
-        val viewData = podcastViewModel.activePodcastViewData ?: return
+        val viewData = podcastViewModel.podcastLiveData
         val bundle = Bundle()
         bundle.putString(MediaMetadataCompat.METADATA_KEY_TITLE,
             episodeViewData.title)
         bundle.putString(MediaMetadataCompat.METADATA_KEY_ARTIST,
-            viewData.feedTitle)
+            viewData.value?.feedTitle)
         bundle.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI,
-            viewData.imageUrl)
+            viewData.value?.imageUrl)
         controller.transportControls.playFromUri(
             Uri.parse(episodeViewData.mediaUrl), bundle)
     }
@@ -176,7 +176,7 @@ class EpisodePlayerFragment : Fragment() {
                                             PlaybackStateCompat?) {
             val state = state ?: return
             handleStateChange(state.state, state.position, state.playbackSpeed)
-            super.onPlaybackStateChanged(state)
+            //super.onPlaybackStateChanged(state)
             println("state changed to $state")
         }
     }
@@ -302,10 +302,10 @@ class EpisodePlayerFragment : Fragment() {
         val speedButtonText = "${playerSpeed}x"
         databinding.speedButton.text = speedButtonText
         if (isPlaying) {
-            animateScrubber(progress, speed)
             if (isVideo) {
                 setupVideoUI()
             }
+        animateScrubber(progress, speed)
         }
     }
 
